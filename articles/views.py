@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from articles.models import Article
 from articles.serializers import ArticleSerializer
 
-# class ArticleViewSet(viewsets.ModelViewSet):
-#     """Manage articles in the database."""
-#     serializer_class = ArticleSerializer
-#     queryset = Article.objects.all()
+class ArticleViewSet(viewsets.ModelViewSet):
+    """Manage articles in the database."""
+    serializer_class = ArticleSerializer
+    queryset = Article.objects.all()
