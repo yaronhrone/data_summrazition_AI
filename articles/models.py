@@ -1,3 +1,24 @@
 from django.db import models
 
-# Create your models here.
+
+class Article(models.Model):
+    """article model."""
+
+
+
+    id = models.AutoField(primary_key=True)
+    external_id = models.CharField(max_length=255, unique=True)
+    published_at = models.DateTimeField()
+    abstract = models.TextField()
+    author = models.CharField(max_length=455)
+    url = models.URLField(max_length=455)
+    title = models.CharField(max_length=455)
+    section_name = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = models.Manager()
+
+    USERNAME_FIELD = 'external_id'
+
+    def __str__(self):
+        return self.title
