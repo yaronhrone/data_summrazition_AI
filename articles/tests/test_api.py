@@ -1,4 +1,5 @@
 """ Tests for the article API. """
+from urllib import response
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -38,20 +39,83 @@ class ArticleAPITests(APITestCase):
         self.assertEqual(response.data[0]['title'], 'Test Article')
         self.assertEqual(response.data[1]['title'], 'Test Article 2')
 
-    # def test_create_article(self):
-    #     """Test creating a new article."""
-    #     url = reverse('article-list')
-    #     data = {
-    #         'title': 'New Test Article',
-    #         'abstract': 'Abstract for the new test article',
-    #         'author': 'New Author',
-    #         'published_at': timezone.now(),
-    #         'url': 'https://example.com/new',
-    #         'section_name': 'New Section'
-    #     }
-    #     response = self.client.post(url, data, format='json')
+    def test_create_article(self):
+        """Test creating a new article."""
+        url = reverse('article-list')
+        payload = {
+            'title': 'New Test Article',
+            'abstract': 'Abstract for the new test article',
+            'author': 'New Author',
+            'published_at': timezone.now(),
+            'url': 'https://example.com/new',
+            'section_name': 'New Section'
+        }
+        response = self.client.post(url, payload, format='json')
 
-    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-    #     self.assertEqual(models.Article.objects.count(), 1)
-    #     self.assertEqual(Article.objects.get().title, 'New Test Article')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(models.Article.objects.count(), 1)
+        self.assertEqual(models.Article.objects.get().title, 'New Test Article')
+
+
+    def test_create_article_invalid(self):
+        """Test creating a new article with invalid payload."""
+        url = reverse('article-list')
+        payload = {
+            'title': '',
+            'abstract': 'Abstract for the new test article',
+
+        }
+        response = self.client.post(url, payload, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+class ArticleDateilAPITests(APITestCase):
+    """Tests for the article withe ID API."""
+
+    def test_get_article_detail(self):
+        """Test """
+        article = create_article()
+
+        url = reverse("article-detail", args=[article.id])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'],article.id)
+        self.assertEqual(response.data['title'], "Test Article")
+
+    def test_get_article_not_found(self):
+        url = reverse("article-detail", args=[999])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_article(self):
+        """Test updating an article."""
+        article = create_article()
+
+        url = reverse("article-detail", args=[article.id])
+        payload = {
+             "external_id": article.external_id,
+             "title": "Updated Title",
+             "abstract": "Updated abstract",
+             "url": "https://example.com",
+             "author": "Yaron",
+             "section_name": "News",
+             "published_at": timezone.now(),
+        }
+        response = self.client.put(url, payload, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        article.refresh_from_db()
+        self.assertEqual(article.title, "Updated Title")
+
+    def test_delete_article(self):
+        """Test deleting an article."""
+        article = create_article()
+
+        url = reverse("article-detail", args = [article.id])
+        response = self.client.delete(url)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(models.Article.objects.filter(id=article.id).exists())
 
