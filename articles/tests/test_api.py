@@ -1,6 +1,7 @@
 """ Tests for the article API. """
-from urllib import response
+
 from django.urls import reverse
+from unittest.mock import patch
 from rest_framework import status
 from rest_framework.test import APITestCase
 from articles import models
@@ -118,4 +119,36 @@ class ArticleDateilAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(models.Article.objects.filter(id=article.id).exists())
+
+
+class summaryAPITests(APITestCase):
+    """Tests for the article summary API."""
+
+    @patch('articles.services.summary_service.generate_summary')
+    def test_get_article_summary(self, mock_generate_summary):
+        """Test retrieving a summary for an article."""
+        mock_generate_summary.return_value = "AI summary"
+        article = create_article()
+
+        url = reverse("article-summary", args=[article.id])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['summary'], mock_generate_summary.return_value)
+        self.assertEqual(models.Summary.objects.count(), 1)
+
+
+    @patch('articles.services.summary_service.generate_summary')
+    def test_get_article_summary_uses_existing(self, mock_generate_summary):
+        """Test retrieving a summary for an article that already has a summary."""
+        mock_generate_summary.return_value = "AI summary"
+        article = create_article()
+        models.Summary.objects.create(article_id=article, summary_text="Existing summary")
+
+        url = reverse("article-summary", args=[article.id])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['summary'], "Existing summary")
+        mock_generate_summary.assert_not_called()
 
