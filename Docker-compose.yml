@@ -20,10 +20,10 @@ services:
       - DB_NAME=devdb
       - DB_USER=devuser
       - DB_PASS=changeme
-
+      - REDIS_HOST=redis
     depends_on:
       - db
-
+      - redis
 
   db:
     image: postgres:16
@@ -34,6 +34,10 @@ services:
       - POSTGRES_USER=devuser
       - POSTGRES_PASSWORD=changeme
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
 
 volumes:
   dev-db-data:

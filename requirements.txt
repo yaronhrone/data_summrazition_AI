@@ -1,6 +1,12 @@
-Django>=4.2.11,<5.0
-djangorestframework>=3.15.2,<3.16
-psycopg2-binary>=2.9,<2.10
-drf-spectacular>=0.27.2,<0.28
+# Django>=4.2.11,<5.0
+# djangorestframework>=3.15.2,<3.16
+# psycopg2-binary>=2.9,<2.10
+# drf-spectacular>=0.27.2,<0.28
+# redis==5.0.4
 
-
+Django==4.2.11
+djangorestframework==3.15.2
+psycopg2-binary==2.9.9
+drf-spectacular==0.27.2
+django-redis==5.4.0
+redis==5.0.4

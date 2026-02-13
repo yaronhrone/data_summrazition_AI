@@ -1,12 +1,17 @@
 """ Tests for the article API. """
 
 from django.urls import reverse
+from django.utils import timezone
+from django.core.cache import cache
+
+import uuid
+
 from unittest.mock import patch
+
 from rest_framework import status
 from rest_framework.test import APITestCase
+
 from articles import models
-from django.utils import timezone
-import uuid
 
 
 def create_article(**params):
@@ -123,6 +128,8 @@ class ArticleDateilAPITests(APITestCase):
 
 class summaryAPITests(APITestCase):
     """Tests for the article summary API."""
+    def setUp(self):
+        cache.clear()
 
     @patch('articles.services.summary_service.generate_summary')
     def test_get_article_summary(self, mock_generate_summary):
@@ -141,9 +148,11 @@ class summaryAPITests(APITestCase):
     @patch('articles.services.summary_service.generate_summary')
     def test_get_article_summary_uses_existing(self, mock_generate_summary):
         """Test retrieving a summary for an article that already has a summary."""
+
+
         mock_generate_summary.return_value = "AI summary"
         article = create_article()
-        models.Summary.objects.create(article_id=article, summary_text="Existing summary")
+        models.Summary.objects.create(article=article, summary_text="Existing summary")
 
         url = reverse("article-summary", args=[article.id])
         response = self.client.get(url)
@@ -151,4 +160,18 @@ class summaryAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['summary'], "Existing summary")
         mock_generate_summary.assert_not_called()
+
+    @patch('articles.services.summary_service.generate_summary')
+    def test_summary_uses_cache_on_second_request(self, mock_generate_summary):
+        """Test that the summary is cached after the first request."""
+        mock_generate_summary.return_value = "AI summary"
+        article = create_article()
+
+        url = reverse("article-summary", args=[article.id])
+        self.client.get(url)
+        self.assertEqual(mock_generate_summary.call_count, 1)
+
+        self.client.get(url)
+        self.assertEqual(mock_generate_summary.call_count, 1)
+
 

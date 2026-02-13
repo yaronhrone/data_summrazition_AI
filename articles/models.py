@@ -25,11 +25,11 @@ class Summary(models.Model):
     """Summary model."""
 
     id = models.AutoField(primary_key=True)
-    article_id = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="summaries")
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="summaries")
     summary_text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = models.Manager()
 
     def __str__(self):
-        return f"Summary for {self.article_id.title}"
+        return f"Summary for {self.article.title}"
