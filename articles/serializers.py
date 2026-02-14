@@ -15,5 +15,5 @@ class ArticleSerializer(serializers.ModelSerializer):
             "url",
             "section_name"
         ]
-        read_only_fields = ["external_id" ,"id", ]
+        read_only_fields = ["id", ]
 

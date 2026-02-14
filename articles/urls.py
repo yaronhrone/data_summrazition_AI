@@ -9,6 +9,6 @@ router.register('article', ArticleViewSet)
 
 urlpatterns = [
     path('', include(router.urls), name='article-list'),
-    path("articles/<int:pk>/summary/", ArticleSummaryView.as_view(), name="article-summary"),
+    path("article/<int:pk>/summary/", ArticleSummaryView.as_view(), name="article-summary"),
 
         ]

@@ -49,6 +49,7 @@ class ArticleAPITests(APITestCase):
         """Test creating a new article."""
         url = reverse('article-list')
         payload = {
+            'external_id': str(uuid.uuid4()),
             'title': 'New Test Article',
             'abstract': 'Abstract for the new test article',
             'author': 'New Author',
