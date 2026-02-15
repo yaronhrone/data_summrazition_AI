@@ -136,3 +136,6 @@ CACHES = {
         }
     }
 }
+REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "core.exceptions.custom_exception_handler",
+}

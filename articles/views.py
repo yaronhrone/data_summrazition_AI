@@ -1,12 +1,10 @@
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
+from django.core.cache import cache
 
 from drf_spectacular.utils import extend_schema
 
-from rest_framework import mixins, status, viewsets
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import  status, viewsets
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.views import APIView
@@ -20,6 +18,32 @@ class ArticleViewSet(viewsets.ModelViewSet):
     """Manage articles in the database."""
     serializer_class = ArticleSerializer
     queryset = Article.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        """List all articles."""
+        cache_key = "articles_list"
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return Response(cached_data)
+
+        response = super().list(request, *args, **kwargs)
+
+
+        cache.set(cache_key, response.data, timeout=21600)
+        return response
+
+    def perform_create(self, serializer):
+        serializer.save()
+        cache.delete("articles_list")
+
+    def perform_update(self, serializer):
+        serializer.save()
+        cache.delete("articles_list")
+
+    def perform_destroy(self, instance):
+        instance.delete()
+        cache.delete("articles_list")
+
 
 class ArticleDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Article.objects.all()

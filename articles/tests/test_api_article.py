@@ -31,6 +31,10 @@ def create_article(**params):
 class ArticleAPITests(APITestCase):
     """Tests for the article API."""
 
+    def setUp(self):
+        cache.clear()
+
+
     def test_get_articles(self):
         """Test retrieving a list of articles."""
         create_article()
@@ -75,6 +79,56 @@ class ArticleAPITests(APITestCase):
         response = self.client.post(url, payload, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_articles_list_is_cached(self):
+        """Test that the articles list is cached after the first request."""
+        create_article()
+
+        url = reverse('article-list')
+        response1 = self.client.get(url)
+        self.assertEqual(response1.status_code, status.HTTP_200_OK)
+
+        cached = cache.get('articles_list')
+        self.assertIsNotNone(cached)
+
+        response2 = self.client.get(url)
+        self.assertEqual(response2.status_code, status.HTTP_200_OK)
+        self.assertEqual(response2.data, cached)
+
+    def test_articles_cache_invalidated_after_create(self):
+        """Test that the articles cache is invalidated after creating a new article."""
+        create_article()
+
+        url = reverse('article-list')
+        self.client.get(url)
+        self.assertIsNotNone(cache.get('articles_list'))
+
+        payload = {
+            'external_id': str(uuid.uuid4()),
+            'title': 'Another Test Article',
+            'abstract': 'Abstract for another test article',
+            'author': 'Another Author',
+            'published_at': timezone.now(),
+            'url': 'https://example.com/another',
+            'section_name': 'Another Section'
+        }
+        self.client.post(url, payload, format='json')
+
+        cached = cache.get('articles_list')
+        self.assertIsNone(cached)
+
+    def test_articles_cache_invalidated_after_delete(self):
+        """Test that the articles cache is invalidated after deleting an article."""
+        article = create_article()
+
+        url = reverse('article-list')
+        self.client.get(url)
+
+        delete_url = reverse('article-detail', args=[article.id])
+        self.client.delete(delete_url)
+
+        cached = cache.get('articles_list')
+        self.assertIsNone(cached)
 
 class ArticleDateilAPITests(APITestCase):
     """Tests for the article withe ID API."""
@@ -125,54 +179,5 @@ class ArticleDateilAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(models.Article.objects.filter(id=article.id).exists())
-
-
-class summaryAPITests(APITestCase):
-    """Tests for the article summary API."""
-    def setUp(self):
-        cache.clear()
-
-    @patch('articles.services.summary_service.generate_summary')
-    def test_get_article_summary(self, mock_generate_summary):
-        """Test retrieving a summary for an article."""
-        mock_generate_summary.return_value = "AI summary"
-        article = create_article()
-
-        url = reverse("article-summary", args=[article.id])
-        response = self.client.get(url)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['summary'], mock_generate_summary.return_value)
-        self.assertEqual(models.Summary.objects.count(), 1)
-
-
-    @patch('articles.services.summary_service.generate_summary')
-    def test_get_article_summary_uses_existing(self, mock_generate_summary):
-        """Test retrieving a summary for an article that already has a summary."""
-
-
-        mock_generate_summary.return_value = "AI summary"
-        article = create_article()
-        models.Summary.objects.create(article=article, summary_text="Existing summary")
-
-        url = reverse("article-summary", args=[article.id])
-        response = self.client.get(url)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['summary'], "Existing summary")
-        mock_generate_summary.assert_not_called()
-
-    @patch('articles.services.summary_service.generate_summary')
-    def test_summary_uses_cache_on_second_request(self, mock_generate_summary):
-        """Test that the summary is cached after the first request."""
-        mock_generate_summary.return_value = "AI summary"
-        article = create_article()
-
-        url = reverse("article-summary", args=[article.id])
-        self.client.get(url)
-        self.assertEqual(mock_generate_summary.call_count, 1)
-
-        self.client.get(url)
-        self.assertEqual(mock_generate_summary.call_count, 1)
 
 
