@@ -38,7 +38,3 @@ def fetch_nyt_articles(keyword="technology"):
             section_name=doc.get("section_name") or "",
             published_at=doc.get("pub_date"),
         )
-
-# def fetch_nyt_articles():
-#     """Fetch articles from the New York Times API."""
-#     print("Fetching articles from the New York Times API...")

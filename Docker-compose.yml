@@ -21,7 +21,9 @@ services:
       - DB_USER=devuser
       - DB_PASS=changeme
       - REDIS_HOST=redis
-      - NYT_API_KEY=EZRcgdRdgGpv44hgZnZJg73TZBF5Yo0B8bEykXM5bEFRPjMC
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - NYT_API_KEY=${NYT_API_KEY}
+
     depends_on:
       - db
       - redis
