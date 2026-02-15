@@ -47,6 +47,7 @@ Client → API Layer → Service Layer → Database / AI / Cache
 | GET | /api/articles/ | List all articles |
 | GET | /api/articles/{id}/ | Get article details |
 | GET | /api/articles/{id}/summary/ | Get AI summary |
+| GET | /health/ | Health Endpoint |
 
 ### 3. AI Summarization
 
