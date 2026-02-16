@@ -1,22 +1,19 @@
 from unittest.mock import patch
 
 from django.urls import reverse
-from django.utils import timezone
 from django.core.cache import cache
-
-import uuid
 
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from articles import models
-from articles.services.summary_service import get_or_create_summary
+
 from articles.tests.test_api_article import create_article
 
 
 
 
-class summaryAPITests(APITestCase):
+class SummaryAPITests(APITestCase):
     """Tests for the article summary API."""
     def setUp(self):
         cache.clear()
@@ -64,4 +61,26 @@ class summaryAPITests(APITestCase):
         self.client.get(url)
         self.assertEqual(mock_generate_summary.call_count, 1)
 
+        cache_key = f"article_summary_{article.id}"
+        self.assertIsNotNone(cache.get(cache_key))
 
+
+
+    def test_summary_article_not_found(self):
+        """Test the ArticleSummarySerializer when the article is not found."""
+
+        url = reverse("article-summary", args=[999])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    @patch('articles.services.summary_service.generate_summary')
+    def test_summary_ai_failure(self, mock_generate_summary):
+        """Test the ArticleSummarySerializer when the AI service fails."""
+        mock_generate_summary.side_effect = Exception("AI error")
+        article = create_article()
+
+        url = reverse("article-summary", args=[article.id])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)

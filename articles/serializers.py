@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from .models import Article
 
 
@@ -17,3 +18,6 @@ class ArticleSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", ]
 
+class ArticleSummarySerializer(serializers.Serializer):
+    """Serializer for article summary."""
+    summary = serializers.CharField()

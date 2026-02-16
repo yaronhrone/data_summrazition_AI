@@ -4,9 +4,9 @@ from django.urls import reverse
 from django.utils import timezone
 from django.core.cache import cache
 
+from articles.constants import ARTICLES_LIST_CACHE_KEY
 import uuid
 
-from unittest.mock import patch
 
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -45,9 +45,9 @@ class ArticleAPITests(APITestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
-        self.assertEqual(response.data[0]['title'], 'Test Article')
-        self.assertEqual(response.data[1]['title'], 'Test Article 2')
+        self.assertEqual(len(response.data["results"]), 2)
+        self.assertEqual(response.data["results"][1]['title'], 'Test Article')
+        self.assertEqual(response.data["results"][0]['title'], 'Test Article 2')
 
     def test_create_article(self):
         """Test creating a new article."""
@@ -88,7 +88,7 @@ class ArticleAPITests(APITestCase):
         response1 = self.client.get(url)
         self.assertEqual(response1.status_code, status.HTTP_200_OK)
 
-        cached = cache.get('articles_list')
+        cached = cache.get(f"{ARTICLES_LIST_CACHE_KEY}_page_1")
         self.assertIsNotNone(cached)
 
         response2 = self.client.get(url)
@@ -101,7 +101,7 @@ class ArticleAPITests(APITestCase):
 
         url = reverse('article-list')
         self.client.get(url)
-        self.assertIsNotNone(cache.get('articles_list'))
+        self.assertIsNotNone(cache.get(f"{ARTICLES_LIST_CACHE_KEY}_page_1"))
 
         payload = {
             'external_id': str(uuid.uuid4()),
@@ -114,7 +114,7 @@ class ArticleAPITests(APITestCase):
         }
         self.client.post(url, payload, format='json')
 
-        cached = cache.get('articles_list')
+        cached = cache.get(f"{ARTICLES_LIST_CACHE_KEY}_page_1")
         self.assertIsNone(cached)
 
     def test_articles_cache_invalidated_after_delete(self):
@@ -127,10 +127,10 @@ class ArticleAPITests(APITestCase):
         delete_url = reverse('article-detail', args=[article.id])
         self.client.delete(delete_url)
 
-        cached = cache.get('articles_list')
+        cached = cache.get(f"{ARTICLES_LIST_CACHE_KEY}_page_1")
         self.assertIsNone(cached)
 
-class ArticleDateilAPITests(APITestCase):
+class ArticleDetailAPITests(APITestCase):
     """Tests for the article withe ID API."""
 
     def test_get_article_detail(self):

@@ -2,22 +2,23 @@
 
 ## Overview
 
-This project is a backend service that:
+This project is a backend system that:
 
-- Fetches news articles from a public API (New York Times)
+- Fetches news articles from the New York Times public API
 - Stores them in a PostgreSQL database
-- Provides RESTful endpoints to query articles
+- Provides RESTful endpoints to query stored data
 - Generates AI-powered summaries using OpenAI
-- Uses Redis for caching summaries and article lists
+- Uses Redis for caching
+- Automatically fetches new data every 6 hours
 - Runs inside Docker containers
 
-The system is built with Django + Django REST Framework.
+The system is built using **Django** and **Django REST Framework**, following clean architecture and separation of concerns.
 
 ---
 
 ## Architecture
 
-The system follows a clean layered architecture:
+The system follows a layered architecture:
 
 Client → API Layer → Service Layer → Database / AI / Cache
 
@@ -25,9 +26,9 @@ Client → API Layer → Service Layer → Database / AI / Cache
 
 - Django REST API
 - PostgreSQL (data storage)
-- Redis (caching)
-- APScheduler (auto-fetch every 6 hours)
-- OpenAI API (AI summaries)
+- Redis (caching layer)
+- APScheduler (automatic fetching)
+- OpenAI API (AI summarization)
 - Docker & Docker Compose
 
 ---
@@ -37,30 +38,53 @@ Client → API Layer → Service Layer → Database / AI / Cache
 ### 1. Automatic Data Fetching
 
 - Fetches articles from NYT API
-- Runs every 6 hours
-- Prevents duplicate inserts (unique external_id)
+- Runs every 6 hours using APScheduler
+- Prevents duplicate inserts using unique `external_id`
+
+---
 
 ### 2. REST Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | /api/articles/ | List all articles |
-| GET | /api/articles/{id}/ | Get article details |
-| GET | /api/articles/{id}/summary/ | Get AI summary |
-| GET | /health/ | Health Endpoint |
+| GET | `/api/articles/` | Paginated list of articles |
+| GET | `/api/articles/{id}/` | Article details |
+| GET | `/api/articles/{id}/summary/` | AI-generated summary |
+| GET | `/health/` | Health check endpoint |
+
+---
 
 ### 3. AI Summarization
 
 - Uses OpenAI `gpt-4o-mini`
 - Generates concise summaries (3–4 sentences)
-- Includes title, author, section and abstract
+- Uses article title, author, section and abstract
+- Avoids repeated AI calls using caching
+
+---
 
 ### 4. Caching Strategy
 
 - Article list cached in Redis
-- Article summaries cached in Redis (TTL: 6 hours)
+- Article summaries cached in Redis
+- TTL: 6 hours
 - Cache invalidation on create/update/delete
-- Prevents unnecessary AI calls (cost optimization)
+- Prevents unnecessary database and AI calls
+
+---
+
+### 5. API Documentation (OpenAPI / Swagger)
+
+The project uses **drf-spectacular** to generate OpenAPI documentation.
+
+- OpenAPI Schema:
+  `GET /api/schema/`
+
+- Swagger UI:
+  http://localhost:8000/api/docs/
+
+- ReDoc:
+  http://localhost:8000/api/redoc/
 
 ---
 
@@ -73,6 +97,7 @@ Client → API Layer → Service Layer → Database / AI / Cache
 - Redis
 - OpenAI API
 - APScheduler
+- drf-spectacular
 - Docker & Docker Compose
 
 ---
@@ -84,3 +109,33 @@ Client → API Layer → Service Layer → Database / AI / Cache
 ```bash
 git clone <repo_url>
 cd project_folder
+
+Ceate file .env in the project root
+DJANGO_SECRET_KEY=your_secret_key
+OPENAI_API_KEY=your_openai_key
+NYT_API_KEY=your_nyt_key
+
+POSTGRES_DB=app
+POSTGRES_USER=app
+POSTGRES_PASSWORD=app
+
+DB_HOST=db
+DB_PORT=5432
+
+build and start containers
+docker-compose up --build
+
+fetch article manually to tirst fetch
+
+docker compose exec app python manage.py fetch_nyt
+
+Access the Application
+
+API Base URL:
+http://localhost:8000/api/articles/
+
+Swagger UI:
+http://localhost:8000/api/docs/
+
+Health Check:
+http://localhost:8000/health/

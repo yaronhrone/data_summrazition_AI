@@ -15,3 +15,4 @@ def start_scheduler():
         scheduler.start()
     except ExternalAPIError:
         pass
+
