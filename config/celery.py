@@ -1,8 +1,6 @@
 import os
 from celery import Celery
 from celery.signals import worker_ready
-from django.db import connections
-from django.db.utils import OperationalError
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
@@ -13,6 +11,8 @@ app.autodiscover_tasks()
 
 @worker_ready.connect
 def at_start(sender, **kwargs):
-    from articles.tasks import fetch_nyt_articles_task
-
-    fetch_nyt_articles_task.delay("technology")
+    from django.apps import apps
+    Article = apps.get_model("articles", "Article")
+    if not Article.objects.exists():
+        from articles.tasks import fetch_nyt_articles_task
+        fetch_nyt_articles_task.delay("technology")
