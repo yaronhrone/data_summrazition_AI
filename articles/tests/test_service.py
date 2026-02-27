@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from articles.models import Article, Summary
 from articles.services.summary_service import get_or_create_summary
-from articles.services.nyt_fether import fetch_nyt_articles
+from articles.services.nyt_fetcher import fetch_nyt_articles
 
 
 def create_article():

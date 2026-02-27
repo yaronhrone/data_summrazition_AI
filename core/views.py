@@ -2,7 +2,10 @@ from django.http import JsonResponse
 from django.db import connection
 from django.core.cache import cache
 import os
+
+
 def health_check(request):
+    HEALTH_CHECK_CACHE_KEY = "health_check"
     status = "healthy"
     services = {}
 
@@ -15,11 +18,11 @@ def health_check(request):
         status = "unhealthy"
 
     try:
-        cache.set(health_check, "ok", timeout=5)
-        if cache.get(health_check) == "ok":
+        cache.set(HEALTH_CHECK_CACHE_KEY, "ok", timeout=5)
+        if cache.get(HEALTH_CHECK_CACHE_KEY) == "ok":
             services["redis"] = "ok"
         else:
-            raise Exception()
+            raise Exception("Redis cache verification failed")
     except Exception:
         services["redis"] = "failed"
         status = "unhealthy"

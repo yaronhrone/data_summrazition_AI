@@ -6,7 +6,6 @@ from drf_spectacular.utils import extend_schema
 
 from rest_framework import  status, viewsets
 from rest_framework.response import Response
-from rest_framework import generics
 from rest_framework.views import APIView
 
 
@@ -45,10 +44,6 @@ class ArticleViewSet(viewsets.ModelViewSet):
         instance.delete()
         cache.delete_pattern(f"{ARTICLES_LIST_CACHE_KEY}_page_*")
 
-
-class ArticleDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Article.objects.all().order_by("-published_at")
-    serializer_class = ArticleSerializer
 
 
 class ArticleSummaryView(APIView):

@@ -14,6 +14,8 @@ from pathlib import Path
 
 import os
 
+from celery.schedules import crontab
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -77,12 +79,19 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+def _get_required_env(key: str, default: str | None = None) -> str:
+    value = os.environ.get(key)
+    if not value:
+        raise ValueError(f"Missing required environment variable: {key}, is not set")
+    return value
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASS'),
+        'NAME': _get_required_env('DB_NAME'),
+        'USER': _get_required_env('DB_USER'),
+        'PASSWORD': _get_required_env('DB_PASS'),
         'HOST': os.environ.get('DB_HOST', "db"),
         'PORT': os.environ.get('DB_PORT', '5432'),
     }
@@ -148,5 +157,17 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "user": "50/day",
         "anon": "20/day",
+    },
+}
+
+CELERY_BROKER_URL = "redis://redis:6379/0"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+
+CELERY_BEAT_SCHEDULE = {
+    "fetch-nyt-every-6-hours": {
+        "task": "articles.tasks.fetch_nyt_articles_task",
+        "schedule": crontab(minute=0, hour="*/6"),
+        "args": ["technology"],
     },
 }

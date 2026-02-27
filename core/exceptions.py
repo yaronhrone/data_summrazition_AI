@@ -3,8 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 import logging
-
-looger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 def custom_exception_handler(exc, context):
     """Custom exception handler that logs errors and returns a consistent error response."""
@@ -19,7 +18,7 @@ def custom_exception_handler(exc, context):
             status=response.status_code
         )
 
-    looger.error(f"Unhandled exception: {exc}", exc_info=True)
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
 
     return Response(
         {"error": True,

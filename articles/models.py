@@ -16,7 +16,7 @@ class Article(models.Model):
 
     objects = models.Manager()
 
-    USERNAME_FIELD = 'external_id'
+
 
     def __str__(self):
         return self.title

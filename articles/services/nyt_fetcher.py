@@ -4,7 +4,7 @@ import requests
 import logging
 from articles.models import Article
 
-NYT_URL = "https://api.nytimes.com/svc/search/v2/articlesearch.json?q=election&api-key={}".format(os.environ.get("NYT_API_KEY"))
+NYT_BASE_URL = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
 
 logger = logging.getLogger(__name__)
 class ExternalAPIError(Exception):
@@ -14,6 +14,8 @@ def fetch_nyt_articles(keyword="technology"):
     """Fetch latest articles from the New York Times API."""
 
     api_key = os.environ.get("NYT_API_KEY")
+    if not api_key:
+        raise ExternalAPIError("NYT_API_KEY not configured")
 
     params = {
         "q": keyword,
@@ -22,7 +24,7 @@ def fetch_nyt_articles(keyword="technology"):
     }
 
     try:
-        response = requests.get(NYT_URL, params=params)
+        response = requests.get(NYT_BASE_URL, params=params)
         response.raise_for_status()
 
         data = response.json()

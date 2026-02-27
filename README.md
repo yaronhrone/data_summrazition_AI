@@ -47,9 +47,9 @@ Client → API Layer → Service Layer → Database / AI / Cache
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/articles/` | Paginated list of articles |
-| GET | `/api/articles/{id}/` | Article details |
-| GET | `/api/articles/{id}/summary/` | AI-generated summary |
+| GET | `api/articles/` | Paginated list of articles |
+| GET | `api/articles/{id}/` | Article details |
+| GET | `api/articles/{id}/summary/` | AI-generated summary |
 | GET | `/health/` | Health check endpoint |
 
 ---
@@ -78,13 +78,16 @@ Client → API Layer → Service Layer → Database / AI / Cache
 The project uses **drf-spectacular** to generate OpenAPI documentation.
 
 - OpenAPI Schema:
-  `GET /api/schema/`
+  `GET /schema/`
 
 - Swagger UI:
-  http://localhost:8000/api/docs/
+  http://localhost:8000/docs/
 
 - ReDoc:
-  http://localhost:8000/api/redoc/
+  http://localhost:8000/redoc/
+
+  - Articles API:
+   http://localhost:8000/api/article/
 
 ---
 
@@ -115,12 +118,18 @@ DJANGO_SECRET_KEY=your_secret_key
 OPENAI_API_KEY=your_openai_key
 NYT_API_KEY=your_nyt_key
 
-POSTGRES_DB=app
-POSTGRES_USER=app
-POSTGRES_PASSWORD=app
+ENABLE_SCHEDULER=True
 
 DB_HOST=db
-DB_PORT=5432
+
+DB_NAME=devdb
+
+DB_USER=devuser
+
+DB_PASS=changeme
+
+REDIS_HOST=redis
+
 
 build and start containers
 docker-compose up --build
@@ -135,7 +144,7 @@ API Base URL:
 http://localhost:8000/api/articles/
 
 Swagger UI:
-http://localhost:8000/api/docs/
+http://localhost:8000/schema/docs/
 
 Health Check:
 http://localhost:8000/health/
